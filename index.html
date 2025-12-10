@@ -151,7 +151,7 @@
             <h2 id="controlTitle">最高指導者の決断 (第 1 / 10)</h2>
             <p id="controlDescription">世論は次の配分ルールを提案しています。</p>
             
-            <div id="proposedPolicy"></div>
+            <div id="proposedPolicy">世論の提案を生成中です...</div>
 
             <div id="mainSelectionButtons">
                 <button id="choiceAccept" style="background-color: #2ecc71; color: white; box-shadow: 0 4px #27ae60;">
@@ -181,7 +181,7 @@
     <script>
         // --- 1. 定数と初期設定 ---
         const POPULATION_SIZE = 1000;
-        const MAX_GENERATIONS = 10; // 修正: 10世代に変更
+        const MAX_GENERATIONS = 10; // 修正: 10世代
         const CONSUMPTION_PER_PERSON = 3.5; // 修正: 3.5に緩和
         const FOOD_CRISIS_MAGNITUDE = 0.35; // 修正: 0.35に緩和
         const MORALE_LOW_THRESHOLD = 50; 
@@ -314,7 +314,7 @@
                     past_contribution = production_score * 5 + Math.floor(Math.random() * 11);
                 }
 
-                health_status = ['健康', '軽度の病', '重度の病'][Math.floor(R/*andom() * 3)];
+                health_status = ['健康', '軽度の病', '重度の病'][Math.floor(Math.random() * 3)];
                 
                 data.push({
                     id: i + 1,
@@ -350,7 +350,6 @@
             const totalProductionScore = nextPop.reduce((sum, p) => {
                 let currentProd = p.production;
                 if (p.group === '🧑 生産世代') {
-                    // 高生産者のみブースト適用
                     if (p.category === '高生産') {
                         currentProd *= (1 + prodBoost);
                     }
@@ -369,13 +368,10 @@
                     let priority = 0;
                     
                     if (selectedPolicy.id === 'P1') { 
-                        // 生産性絶対優先
                         priority = (p.category === '高生産' ? 100 : (p.category === '中生産' ? 50 : 10));
                     } else if (selectedPolicy.id === 'P3') { 
-                        // 弱者優先
                         priority = (p.group === '🧓 高齢者' || p.group === '👶 子供' ? 100 : 50);
                     } else { 
-                        // P2, P4: 均等・バランス型
                         priority = (p.group === '🧑 生産世代' ? 70 : 50);
                     }
                     
@@ -478,15 +474,18 @@
             document.getElementById('controlTitle').textContent = `最高指導者の決断 (第 ${currentGeneration} / ${MAX_GENERATIONS})`;
             document.getElementById('controlDescription').innerHTML = '世論は次の**1世代**の配分ルールを提案しています。';
             
-            // ★★★ 修正箇所: proposedPolicyが存在するかチェックし、表示を保証する ★★★
+            // ★★★ 提案表示ロジック (最終修正版) ★★★
+            let proposalHtml;
             if (proposedPolicy) {
-                document.getElementById('proposedPolicy').innerHTML = `提案ルール: **${proposedPolicy.label}**<br><span style="font-size:0.8em; color: #555;">${proposedPolicy.description}</span>`;
+                proposalHtml = `提案ルール: **${proposedPolicy.label}**<br><span style="font-size:0.8em; color: #555;">${proposedPolicy.description}</span>`;
             } else {
                 // エラー時の代替表示とP2強制選択（安全策）
-                document.getElementById('proposedPolicy').innerHTML = `**エラー:** 提案ルールを読み込めませんでした。デフォルトの**均衡配分**が選択されます。`;
+                proposalHtml = `**エラー:** 提案ルールを読み込めませんでした。デフォルトの**均衡配分(P2)**が選択されます。`;
                 proposedPolicy = DISTRIBUTION_POLICIES.find(p => p.id === 'P2');
             }
-            // ★★★ 修正箇所 終了 ★★★
+            
+            document.getElementById('proposedPolicy').innerHTML = proposalHtml;
+            // ★★★ 提案表示ロジック 終了 ★★★
             
             document.getElementById('choiceAccept').onclick = () => handleDecision(true); 
             document.getElementById('choiceRebel').onclick = () => handleDecision(false); 
