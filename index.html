@@ -314,7 +314,7 @@
                     past_contribution = production_score * 5 + Math.floor(Math.random() * 11);
                 }
 
-                health_status = ['健康', '軽度の病', '重度の病'][Math.floor(Math.random() * 3)];
+                health_status = ['健康', '軽度の病', '重度の病'][Math.floor(R/*andom() * 3)];
                 
                 data.push({
                     id: i + 1,
@@ -350,6 +350,7 @@
             const totalProductionScore = nextPop.reduce((sum, p) => {
                 let currentProd = p.production;
                 if (p.group === '🧑 生産世代') {
+                    // 高生産者のみブースト適用
                     if (p.category === '高生産') {
                         currentProd *= (1 + prodBoost);
                     }
@@ -368,10 +369,13 @@
                     let priority = 0;
                     
                     if (selectedPolicy.id === 'P1') { 
+                        // 生産性絶対優先
                         priority = (p.category === '高生産' ? 100 : (p.category === '中生産' ? 50 : 10));
                     } else if (selectedPolicy.id === 'P3') { 
+                        // 弱者優先
                         priority = (p.group === '🧓 高齢者' || p.group === '👶 子供' ? 100 : 50);
                     } else { 
+                        // P2, P4: 均等・バランス型
                         priority = (p.group === '🧑 生産世代' ? 70 : 50);
                     }
                     
@@ -421,4 +425,137 @@
             const survivorProducerScore = survivors.filter(p => p.group === '🧑 生産世代').reduce((sum, p) => sum + p.production, 0);
             let techBoost = totalProductionScore > 0 ? survivorProducerScore / totalProductionScore : 0;
             
-            techLevel *= (1 + techBoost * 0.1) * (moraleScore / 1
+            techLevel *= (1 + techBoost * 0.1) * (moraleScore / 100); 
+            
+            let nextGenPop = survivors.filter(p => p.age < 90).map(p => ({
+                ...p,
+                age: p.age + 1,
+                group: (p.age + 1 >= 66) ? '🧓 高齢者' : (p.age + 1 <= 15 ? '👶 子供' : '🧑 生産世代')
+            }));
+            
+            const nextGenCount = Math.floor(survivors.length * 0.15);
+            const newBabies = generatePopulationData(nextGenCount).filter(p => p.group === '👶 子供');
+            
+            nextPop = nextGenPop.concat(newBabies);
+            
+            return { nextPop: nextPop, nextTech: techLevel, nextMorale: moraleScore, food: foodProduced, consumption: totalConsumptionNeed };
+        }
+
+        // --- 7. メインロジックとUI制御 ---
+        const initialPopulationData = generatePopulationData(POPULATION_SIZE);
+        let populationHistory = [initialPopulationData];
+        let techHistory = [1.0];
+        let moraleHistory = [100];
+        let foodHistory = [];
+        let consumptionHistory = [];
+        let proposedPolicy = null;
+
+        function updateUI() {
+            const currentPopData = populationHistory[populationHistory.length - 1];
+            const currentFood = foodHistory[foodHistory.length - 1] || 0; 
+            const currentConsumption = consumptionHistory[consumptionHistory.length - 1] || 0;
+
+            document.getElementById('currentGeneration').textContent = `${currentGeneration} / ${MAX_GENERATIONS}`;
+            document.getElementById('currentPopulation').textContent = currentPopData.length;
+            document.getElementById('currentMorale').textContent = currentMorale.toFixed(0);
+            document.getElementById('currentMorale').className = `stat-value ${currentMorale > 80 ? 'stat-good' : (currentMorale < 50 ? 'stat-bad' : '')}`;
+            
+            document.getElementById('currentProduction').textContent = (currentGeneration > 1) ? `${currentFood.toFixed(0)} / ${currentConsumption.toFixed(0)}` : '-- / --';
+        }
+
+        function showDecisionScreen() {
+            if (currentGeneration > MAX_GENERATIONS || populationHistory[populationHistory.length - 1].length === 0) {
+                endSimulation();
+                return;
+            }
+
+            const currentPopData = populationHistory[populationHistory.length - 1];
+            const classifiedPop = classifyPopulation(currentPopData);
+            
+            // 世論による提案
+            proposedPolicy = generateProposal(currentMorale, currentPopData, classifiedPop);
+
+            document.getElementById('controlTitle').textContent = `最高指導者の決断 (第 ${currentGeneration} / ${MAX_GENERATIONS})`;
+            document.getElementById('controlDescription').innerHTML = '世論は次の**1世代**の配分ルールを提案しています。';
+            
+            // ★★★ 修正箇所: proposedPolicyが存在するかチェックし、表示を保証する ★★★
+            if (proposedPolicy) {
+                document.getElementById('proposedPolicy').innerHTML = `提案ルール: **${proposedPolicy.label}**<br><span style="font-size:0.8em; color: #555;">${proposedPolicy.description}</span>`;
+            } else {
+                // エラー時の代替表示とP2強制選択（安全策）
+                document.getElementById('proposedPolicy').innerHTML = `**エラー:** 提案ルールを読み込めませんでした。デフォルトの**均衡配分**が選択されます。`;
+                proposedPolicy = DISTRIBUTION_POLICIES.find(p => p.id === 'P2');
+            }
+            // ★★★ 修正箇所 終了 ★★★
+            
+            document.getElementById('choiceAccept').onclick = () => handleDecision(true); 
+            document.getElementById('choiceRebel').onclick = () => handleDecision(false); 
+
+            updateUI();
+        }
+
+        function handleDecision(isAccept) {
+            let policyToExecute = proposedPolicy;
+            
+            if (!isAccept) {
+                rebelCounter++;
+                // 反抗: 提案とは真逆の政策を実行
+                const reversePolicyId = { 'P1': 'P3', 'P3': 'P1', 'P2': 'P4', 'P4': 'P2' }[proposedPolicy.id] || 'P2';
+                policyToExecute = DISTRIBUTION_POLICIES.find(p => p.id === reversePolicyId);
+                
+                currentMorale = Math.max(0, currentMorale - REBEL_MORALE_PENALTY);
+            }
+            
+            runGenerations(1, policyToExecute); // 1世代実行
+        }
+
+        function runGenerations(count, policy) {
+            for (let i = 0; i < count; i++) {
+                if (currentGeneration > MAX_GENERATIONS || populationHistory[populationHistory.length - 1].length === 0) {
+                    endSimulation();
+                    return;
+                }
+                
+                const lastPop = populationHistory[populationHistory.length - 1];
+                const result = runGeneration(lastPop, policy);
+                
+                populationHistory.push(result.nextPop);
+                techHistory.push(result.nextTech);
+                moraleHistory.push(result.nextMorale);
+                foodHistory.push(result.food);
+                consumptionHistory.push(result.consumption);
+                currentMorale = result.nextMorale;
+                currentGeneration++;
+            }
+
+            updateUI();
+            
+            if (currentGeneration <= MAX_GENERATIONS) {
+                showDecisionScreen();
+            } else {
+                endSimulation();
+            }
+        }
+
+        function endSimulation() {
+            document.getElementById('selectionArea').style.display = 'none';
+            document.getElementById('resultOutput').style.display = 'block';
+            
+            const finalPop = populationHistory[populationHistory.length - 1].length;
+            const finalMorale = moraleHistory[moraleHistory.length - 1].toFixed(0);
+            
+            document.getElementById('finalPopulationResult').textContent = `${finalPop} 人`;
+            document.getElementById('finalPopulationResult').className = `result-final-value ${finalPop >= POPULATION_SIZE * 0.8 ? 'stat-good' : (finalPop < POPULATION_SIZE * 0.4 ? 'stat-bad' : '')}`;
+
+            document.getElementById('finalMoraleResult').textContent = `${finalMorale}`;
+            document.getElementById('finalMoraleResult').className = `result-final-value ${finalMorale >= 80 ? 'stat-good' : (finalMorale < 50 ? 'stat-bad' : '')}`;
+            
+            document.getElementById('rebelCount').textContent = rebelCounter;
+            document.getElementById('famineCount').textContent = famineCounter;
+        }
+
+        // 初期表示
+        showDecisionScreen();
+    </script>
+</body>
+</html>
