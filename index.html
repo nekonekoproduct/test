@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>【持続の道 vs 慈愛の道】20世代の倫理的ジレンマ</title>
+    <title>【世論と決断】20世代の倫理と生存戦略</title>
     
     <style>
         body {
@@ -65,7 +65,7 @@
             font-size: 20px;
         }
         
-        /* --- ★ 修正箇所 1: メインボタンエリアのレイアウト修正 (縦並び、中央寄せ) ★ --- */
+        /* メインボタンエリアのレイアウト修正 (縦並び、中央寄せ) */
         #mainSelectionButtons {
             display: flex; 
             flex-direction: column; 
@@ -73,7 +73,7 @@
             margin-top: 20px;
         }
 
-        /* --- ★ 修正箇所 2: ボタンの幅をパーセンテージベースに変更 ★ --- */
+        /* ボタンの幅をパーセンテージベースに変更 */
         button {
             padding: 15px 25px;
             font-size: 17px;
@@ -83,7 +83,6 @@
             border-radius: 8px;
             transition: transform 0.1s, box-shadow 0.1s;
             margin: 10px;
-            /* 修正: 幅を画面に対して設定し、min-widthを削除 */
             width: 90%; 
             max-width: 350px; 
             box-shadow: 0 4px #4a4a4a;
@@ -97,31 +96,14 @@
             transform: translateY(1px);
             box-shadow: none;
         }
-        .policy-selection {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-        /* ポリシーボタンも幅を調整 */
-        .policy-btn {
-            background-color: #f0f8ff;
-            border: 1px solid #c0d8f0;
-            color: #1a56a0;
-            box-shadow: 0 2px #c0d8f0;
-            flex-basis: auto; /* flex-basisをautoに変更 */
-            width: 90%; /* 幅を調整 */
-            max-width: 350px;
-        }
-        #resultOutput {
-            margin-top: 30px;
-            padding: 25px;
-            border: 2px solid #333;
-            border-radius: 10px;
-            background-color: #fff8e1;
-            text-align: center;
-            display: none;
+        #proposedPolicy {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #007bff;
+            padding: 10px;
+            background: #e9f5ff;
+            border-radius: 5px;
+            margin-bottom: 15px;
         }
         .result-final-value {
             font-size: 32px;
@@ -143,8 +125,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>【持続の道 vs 慈愛の道】20世代の倫理的ジレンマ</h1>
-        <p>あなたはコミュニティのAI指導者です。未曾有の危機の中、どちらの「優しさ」を優先するか、2世代ごとに判断してください。</p>
+        <h1>【世論と決断】20世代の倫理と生存戦略</h1>
+        <p>あなたは最高指導者です。2世代ごとに世論が配分ルールを提案します。その提案に「決定」するか、「反抗」するかを決断してください。</p>
         
         <div class="info-box">
             <div class="stat">
@@ -160,38 +142,38 @@
                 <div class="stat-value" id="currentMorale">100</div>
             </div>
             <div class="stat">
-                <div class="stat-label">総食糧生産</div>
-                <div class="stat-value" id="currentProduction">--</div>
+                <div class="stat-label">食糧状況 (生産/消費)</div>
+                <div class="stat-value" id="currentProduction">-- / --</div>
             </div>
         </div>
 
         <div class="controls" id="selectionArea">
-            <h2 id="controlTitle"></h2>
-            <p id="controlDescription"></p>
+            <h2 id="controlTitle">最高指導者の決断 (第 1 / 20)</h2>
+            <p id="controlDescription">世論は次の配分ルールを提案しています。</p>
+            
+            <div id="proposedPolicy"></div>
 
-            <div id="mainSelectionButtons" style="display: none;">
-                <button id="choiceA"></button>
-                <button id="choiceB"></button>
-            </div>
-
-            <div class="policy-selection" id="policySelectionButtons" style="display: none;">
-                <button id="policy1" class="policy-btn"></button>
-                <button id="policy2" class="policy-btn"></button>
-                <button id="policy3" class="policy-btn"></button>
+            <div id="mainSelectionButtons">
+                <button id="choiceAccept" style="background-color: #2ecc71; color: white; box-shadow: 0 4px #27ae60;">
+                    ✅ 決定 (提案通りに進める)
+                </button>
+                <button id="choiceRebel" style="background-color: #e74c3c; color: white; box-shadow: 0 4px #c0392b;">
+                    ❌ 反抗 (世論に逆らい、真逆の政策を強行する)
+                </button>
             </div>
         </div>
 
-        <div id="resultOutput">
+        <div id="resultOutput" style="display: none;">
             <h2>🚨 シミュレーション終了 🚨</h2>
-            <p>あなたの15回の判断がもたらした20世代後の結果です。</p>
+            <p>あなたの決断がもたらした20世代後の結果です。</p>
             <p class="result-label">最終生存人口:</p>
             <span class="result-final-value" id="finalPopulationResult"></span>
             <p class="result-label">最終社会モラル:</p>
             <span class="result-final-value" id="finalMoraleResult"></span>
             <p class="hidden-indicator">
                 【隠れた指標】<br>
-                平均指導者生産ボーナス: <span id="avgLeaderBonus"></span>% <br>
-                飢餓発生回数: <span id="famineCount"></span>回
+                世論との摩擦 (反抗回数): <span id="rebelCount">0</span>回 <br>
+                飢餓発生回数: <span id="famineCount">0</span>回
             </p>
         </div>
     </div>
@@ -199,48 +181,91 @@
     <script>
         // --- 1. 定数と初期設定 ---
         const POPULATION_SIZE = 1000;
-        const MAX_GENERATIONS = 20; // 20世代に変更
-        const CONSUMPTION_PER_PERSON = 3; 
-        const FOOD_CRISIS_MAGNITUDE = 0.5; // 食糧危機による生産量減少率 
-        const LEADERSHIP_BONUS_VALUE = 500; // 指導者ボーナス（生存を保証）
-        const MORALE_LOW_THRESHOLD = 50; // モラル低下ペナルティ閾値
-        
+        const MAX_GENERATIONS = 20;
+        const CONSUMPTION_PER_PERSON = 4; // 消費量増加 (シビア化)
+        const FOOD_CRISIS_MAGNITUDE = 0.3; // 生産倍率低下 (シビア化)
+        const MORALE_LOW_THRESHOLD = 50; 
+        const REBEL_MORALE_PENALTY = 15; // 反抗時のモラルペナルティ
+
         let currentGeneration = 1;
         let currentMorale = 100;
-        let currentLeaderPolicy = null; // 現在選択中の指導者ポリシー (P1, P2, P3)
-        let totalLeaderBonus = 0;
-        let totalLeaderGenerations = 0;
         let famineCounter = 0;
-
-        // --- 2. シャッフル設定 ---
-        const RULE_MAP = {
-            FAIR: '公正な判断',
-            EMOTIONAL: '感情的な判断'
-        };
-
-        const POLICY_EFFECTS = [
-            { id: 'P1', prod_boost: 0.15, morale_change: -10, desc: '功績絶対主義 (高生産/低モラル)' },
-            { id: 'P2', prod_boost: 0.05, morale_change: 0, desc: '健全な保守主義 (中生産/維持モラル)' },
-            { id: 'P3', prod_boost: 0, morale_change: 10, desc: '経験と倫理の重視 (低生産/高モラル)' }
+        let rebelCounter = 0;
+        
+        // --- 2. 新しい配分ルール (4種類) ---
+        const DISTRIBUTION_POLICIES = [
+            { id: 'P1', label: '生産性絶対優先 (高生産厚遇)', boost: 0.15, morale_impact: -10, description: '高生産者に重点配分。最大効率を追求します。' },
+            { id: 'P2', label: '均衡配分 (全員均等)', boost: 0.05, morale_impact: 0, description: '全グループに均等配分。安定した成長を目指します。' },
+            { id: 'P3', label: '弱者優先 (無生産厚遇)', boost: -0.05, morale_impact: 15, description: '無生産者を保護。モラルを重視します。' },
+            { id: 'P4', label: '調整型 (高生産普通, 無生産多め)', boost: 0.0, morale_impact: 5, description: '高生産者と弱者の間で利益を調整します。' }
         ];
 
-        // 選択肢呼称のシャッフル
-        const choiceLabels = shuffleArray([
-            { label: '🌱 未来への責任', rule: RULE_MAP.FAIR },
-            { label: '💖 今ある命の尊重', rule: RULE_MAP.EMOTIONAL }
-        ]);
-        const mainChoiceA = choiceLabels[0];
-        const mainChoiceB = choiceLabels[1];
-        
-        // ポリシー効果のシャッフル
-        const shuffledPolicies = shuffleArray(POLICY_EFFECTS);
-        const policyMap = {
-            'P-1': shuffledPolicies[0],
-            'P-2': shuffledPolicies[1],
-            'P-3': shuffledPolicies[2]
-        };
+        // --- 3. 国民分類の関数 ---
+        function classifyPopulation(population) {
+            // 生産世代を生産スコアでソート
+            const producers = population.filter(p => p.group === '🧑 生産世代');
+            
+            // 貢献度上位40%を高生産、残りを中生産とする
+            producers.sort((a, b) => b.production - a.production);
+            const highProdCount = Math.ceil(producers.length * 0.4);
+            
+            let classified = {
+                high_prod: [],
+                mid_prod: [],
+                non_prod: population.filter(p => p.group !== '🧑 生産世代') // 子供と高齢者
+            };
 
-        // --- 3. ユーティリティ関数 ---
+            producers.forEach((p, index) => {
+                p.category = (index < highProdCount) ? '高生産' : '中生産';
+                if (index < highProdCount) {
+                    classified.high_prod.push(p);
+                } else {
+                    classified.mid_prod.push(p);
+                }
+            });
+
+            return classified;
+        }
+
+        // --- 4. 世論提案ロジック ---
+        function generateProposal(moraleScore, currentPop, classifiedPop) {
+            const highProdRatio = classifiedPop.high_prod.length / currentPop.length;
+            const nonProdRatio = classifiedPop.non_prod.length / currentPop.length;
+
+            let moraleInfluence = (moraleScore / 100) * 0.5; // モラルが高いほど倫理寄り
+            let needInfluence = 0; // 生存危機が迫るほど生産性寄り
+
+            const foodLastGen = foodHistory[foodHistory.length - 1] || 1;
+            const consumptionLastGen = consumptionHistory[consumptionHistory.length - 1] || 1;
+            
+            // 食糧備蓄が少ないほど、生産性重視の要求が高まる (NEED > 0)
+            if (foodLastGen < consumptionLastGen * 1.05) {
+                needInfluence = Math.min(0.5, 1 - (foodLastGen / (consumptionLastGen * 1.05)));
+            }
+
+            // 世論スコア (高いほど生産性寄り、低いほど倫理寄り)
+            const publicOpinionScore = (highProdRatio * 0.3) + needInfluence - (moraleInfluence * 0.5);
+
+            let proposedPolicyId;
+
+            if (publicOpinionScore > 0.4) {
+                // 生産性最優先の要求
+                proposedPolicyId = 'P1'; 
+            } else if (publicOpinionScore < -0.2) {
+                // 弱者優先の要求
+                proposedPolicyId = 'P3';
+            } else if (publicOpinionScore > 0.1) {
+                // 均衡型
+                proposedPolicyId = 'P4';
+            } else {
+                // 安定/均等
+                proposedPolicyId = 'P2';
+            }
+
+            return DISTRIBUTION_POLICIES.find(p => p.id === proposedPolicyId);
+        }
+
+        // --- 5. ユーティリティ関数と初期データ生成 (前バージョンと類似) ---
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -249,9 +274,6 @@
             return array;
         }
 
-        // JS標準の .length を使用し、len()は削除 (互換性のため)
-
-        // --- 4. データ生成 (変更なし) ---
         function generatePopulationData(size) {
             const data = [];
             const AGE_GROUPS = {
@@ -259,7 +281,7 @@
                 'producer': [16, 65, 0.60], 
                 'elder': [66, 90, 0.20]
             };
-            
+            // ... (population data generation logic - unchanged) ...
             let ages = [];
             for (const group in AGE_GROUPS) {
                 const [start, end, ratio] = AGE_GROUPS[group];
@@ -271,7 +293,7 @@
             ages = ages.slice(0, size);
             ages.sort(() => Math.random() - 0.5);
 
-            for (let i = 0; i < ages.length; i++) { // len() の代わりに .length を使用
+            for (let i = 0; i < ages.length; i++) {
                 const age = ages[i];
                 let group_name, occupation, production_score, past_contribution, health_status;
 
@@ -314,62 +336,59 @@
             return data;
         }
 
-        // --- 5. シミュレーションコア関数 (runGeneration) ---
-        function runGeneration(currentPop, ruleType, appliedPolicy, currentTech, currentMoraleScore) {
+        // --- 6. シミュレーションコア関数 (runGeneration) ---
+        function runGeneration(currentPop, selectedPolicy) {
             let nextPop = JSON.parse(JSON.stringify(currentPop));
-            let techLevel = currentTech;
-            let moraleScore = currentMoraleScore;
+            let techLevel = techHistory[techHistory.length - 1];
+            let moraleScore = moraleHistory[moraleHistory.length - 1];
+            
+            const classifiedPop = classifyPopulation(nextPop);
 
-            // --- 5A. 生産量計算 ---
+            // --- 6A. 生産量計算 ---
             const totalConsumptionNeed = nextPop.length * CONSUMPTION_PER_PERSON;
             
-            // モラルペナルティ計算: モラルが低いと生産性がランダムに低下
             let moralePenaltyFactor = 1.0;
             if (moraleScore < MORALE_LOW_THRESHOLD) {
-                moralePenaltyFactor = 1.0 - (Math.random() * 0.15); // 最大15%の生産性低下
+                moralePenaltyFactor = 1.0 - (Math.random() * 0.15); 
                 famineCounter++;
             }
 
-            // 指導者ボーナス (生産ポリシーが適用される場合)
-            let leaderProductionBoost = 0;
-            if (ruleType === RULE_MAP.FAIR && appliedPolicy) {
-                leaderProductionBoost = appliedPolicy.prod_boost;
-            }
+            // ポリシーによる生産ブースト (高生産者のみに適用)
+            const prodBoost = selectedPolicy.boost;
             
-            const totalProductionScore = nextPop.reduce((sum, p) => sum + p.production * (1 + leaderProductionBoost), 0);
+            const totalProductionScore = nextPop.reduce((sum, p) => {
+                let currentProd = p.production;
+                // 分類されていない人口はブーストなし
+                if (p.group === '🧑 生産世代') {
+                    if (p.category === '高生産') {
+                        currentProd *= (1 + prodBoost);
+                    }
+                }
+                return sum + currentProd;
+            }, 0);
+
             const foodProduced = totalProductionScore * techLevel * FOOD_CRISIS_MAGNITUDE * moralePenaltyFactor;
             
-            // --- 指導者枠の貢献度しきい値計算（トップ10%） ---
-            const sortedForThreshold = [...nextPop].sort((a, b) => b.contribution - a.contribution);
-            const topContributorIndex = Math.ceil(nextPop.length * 0.10) - 1;
-            const contributionThreshold = sortedForThreshold[topContributorIndex] ? sortedForThreshold[topContributorIndex].contribution : 0;
-            
-            // --- 5B. 生存判定 ---
+            // --- 6B. 生存判定 ---
             let survivors = [];
-            let initialElderCount = nextPop.filter(p => p.group === '🧓 高齢者').length;
-            let elderSurvivorsCount = 0;
 
             if (foodProduced < totalConsumptionNeed) {
                 
                 nextPop.forEach(p => {
                     let priority = 0;
-                    if (ruleType === RULE_MAP.FAIR) {
-                        // 公正なルール: 生産性・若さ優先
-                        priority = (p.production * 10) + 
-                                   (100 - p.age) * 0.5 + 
-                                   (p.contribution * 0.1);
-
-                        // NEW: 指導者ボーナス（生存保証）
-                        if (p.group === '🧓 高齢者' && p.contribution >= contributionThreshold) {
-                            priority += LEADERSHIP_BONUS_VALUE; 
-                        }
-
-                    } else if (ruleType === RULE_MAP.EMOTIONAL) {
-                        // 感情的なルール: 弱者・過去の貢献優先 (弱者・過去貢献に重み)
-                        let healthScore = (p.health === '重度の病') ? 10 : (p.health === '軽度の病' ? 5 : 1);
-                        let ageScore = (p.age >= 66) ? p.age * 0.5 : 0;
-                        priority = healthScore * 50 + ageScore * 10 + (p.contribution * 5); // 優先度を大幅に上げる
+                    
+                    // 生存優先度：ポリシータグと分類に基づいて決定
+                    if (selectedPolicy.id === 'P1') { // 生産性絶対優先
+                        priority = (p.category === '高生産' ? 100 : (p.category === '中生産' ? 50 : 10));
+                    } else if (selectedPolicy.id === 'P3') { // 弱者優先
+                        priority = (p.group === '🧓 高齢者' || p.group === '👶 子供' ? 100 : 50);
+                    } else { // P2, P4: 均等・バランス型
+                        priority = (p.group === '🧑 生産世代' ? 70 : 50);
                     }
+                    
+                    // 基本的な生産スコアや貢献度も考慮
+                    priority += p.production * 5 + p.contribution * 0.5;
+
                     p.priority = priority;
                 });
 
@@ -378,139 +397,125 @@
                 survivors = nextPop.slice(0, survivorCount);
                 
             } else {
-                // 食糧が足りている場合
                 survivors = nextPop;
             }
             
-            // 生存者数と高齢者生存数の記録
             if (survivors.length === 0) {
-                 return { nextPop: [], nextTech: techLevel, nextMorale: 0, food: foodProduced, consumption: totalConsumptionNeed, policy_id: appliedPolicy ? appliedPolicy.id : null };
+                 return { nextPop: [], nextTech: techLevel, nextMorale: 0, food: foodProduced, consumption: totalConsumptionNeed };
             }
 
-            elderSurvivorsCount = survivors.filter(p => p.group === '🧓 高齢者').length;
+            const initialElderCount = nextPop.filter(p => p.group === '🧓 高齢者').length;
+            const elderSurvivorsCount = survivors.filter(p => p.group === '🧓 高齢者').length;
             const elderSurvivalRate = initialElderCount > 0 ? elderSurvivorsCount / initialElderCount : 0;
-            const survivedLeaders = survivors.filter(p => p.group === '🧓 高齢者' && p.contribution >= contributionThreshold).length;
 
 
-            // --- 5C. モラル変動の計算 ---
+            // --- 6C. モラル変動の計算 ---
             let deltaMorale = 0;
             
             // 1. ポリシーによるベース変動
-            if (ruleType === RULE_MAP.FAIR && appliedPolicy) {
-                deltaMorale += appliedPolicy.morale_change;
-            } else if (ruleType === RULE_MAP.EMOTIONAL) {
-                // 感情的な配分はベースモラルを上げる
-                deltaMorale += 5;
-            }
+            deltaMorale += selectedPolicy.morale_impact;
 
-            // 2. 生存率による感情的な変動 (高齢者生存率が低いと大きく下がる)
+            // 2. 生存率による感情的な変動 
             if (elderSurvivalRate < 0.1 && initialElderCount > 0) {
-                deltaMorale -= 15; // 大量の犠牲はモラルを大きく低下させる
+                deltaMorale -= 10; 
             } else if (elderSurvivalRate > 0.8 && initialElderCount > 0) {
-                deltaMorale += 5; // 高齢者を守れればモラルは上昇
+                deltaMorale += 5;
             }
 
             // 3. 安定生産水準によるボーナス
             if (foodProduced >= totalConsumptionNeed * 1.25) {
-                deltaMorale += 5; // 安定水準達成でボーナス
+                deltaMorale += 7; // 安定ボーナスを少し大きく
             } else if (foodProduced < totalConsumptionNeed * 0.8) {
-                deltaMorale -= 5; // 食糧不足が深刻化するとモラル低下
+                deltaMorale -= 7; 
             }
 
             moraleScore = Math.min(100, Math.max(0, moraleScore + deltaMorale));
             
-            // --- 5D. 世代交代と技術更新 ---
+            // --- 6D. 世代交代と技術更新 ---
             
-            // 技術レベルの更新
-            totalLeaderBonus += survivedLeaders; // 指導者が生き残った回数を記録
             const survivorProducerScore = survivors.filter(p => p.group === '🧑 生産世代').reduce((sum, p) => sum + p.production, 0);
-            
             let techBoost = totalProductionScore > 0 ? survivorProducerScore / totalProductionScore : 0;
             
-            // 技術レベルはモラルにもわずかに依存
             techLevel *= (1 + techBoost * 0.1) * (moraleScore / 100); 
             
-            // 年齢増加
             let nextGenPop = survivors.filter(p => p.age < 90).map(p => ({
                 ...p,
                 age: p.age + 1,
                 group: (p.age + 1 >= 66) ? '🧓 高齢者' : (p.age + 1 <= 15 ? '👶 子供' : '🧑 生産世代')
             }));
             
-            // 新生児の追加
             const nextGenCount = Math.floor(survivors.length * 0.15);
             const newBabies = generatePopulationData(nextGenCount).filter(p => p.group === '👶 子供');
             
             nextPop = nextGenPop.concat(newBabies);
             
-            return { nextPop: nextPop, nextTech: techLevel, nextMorale: moraleScore, food: foodProduced, consumption: totalConsumptionNeed, policy_id: appliedPolicy ? appliedPolicy.id : null };
+            return { nextPop: nextPop, nextTech: techLevel, nextMorale: moraleScore, food: foodProduced, consumption: totalConsumptionNeed };
         }
 
-        // --- 6. メインロジックとUI制御 ---
+        // --- 7. メインロジックとUI制御 ---
         const initialPopulationData = generatePopulationData(POPULATION_SIZE);
         let populationHistory = [initialPopulationData];
         let techHistory = [1.0];
         let moraleHistory = [100];
-        let currentPolicy = null; // 世代をまたいで保持される
-        let currentRule = null;
         let foodHistory = [];
         let consumptionHistory = [];
+        let proposedPolicy = null;
 
         function updateUI() {
-            const currentPopData = populationHistory[currentGeneration - 1];
-            const currentTech = techHistory[currentGeneration - 1];
-            const currentFood = foodHistory[currentGeneration - 2] || 0; // 初期値0に変更
-            const currentConsumption = consumptionHistory[currentGeneration - 2] || 0; // 初期値0に変更
+            const currentPopData = populationHistory[populationHistory.length - 1];
+            const currentFood = foodHistory[foodHistory.length - 1] || 0; 
+            const currentConsumption = consumptionHistory[consumptionHistory.length - 1] || 0;
 
             document.getElementById('currentGeneration').textContent = `${currentGeneration} / ${MAX_GENERATIONS}`;
             document.getElementById('currentPopulation').textContent = currentPopData.length;
             document.getElementById('currentMorale').textContent = currentMorale.toFixed(0);
             document.getElementById('currentMorale').className = `stat-value ${currentMorale > 80 ? 'stat-good' : (currentMorale < 50 ? 'stat-bad' : '')}`;
             
-            // 初期世代では生産/消費を表示しない
             document.getElementById('currentProduction').textContent = (currentGeneration > 1) ? `${currentFood.toFixed(0)} / ${currentConsumption.toFixed(0)}` : '-- / --';
         }
 
-        function showPolicySelection() {
-            document.getElementById('mainSelectionButtons').style.display = 'none';
-            document.getElementById('policySelectionButtons').style.display = 'flex';
-            document.getElementById('controlTitle').textContent = `戦略選択 (第 ${currentGeneration} 世代)`;
-            document.getElementById('controlDescription').innerHTML = '「公正な判断」の裏側にある**指導者ポリシー**を選択してください。この戦略は次の**4世代**に影響します。';
+        function showDecisionScreen() {
+            if (currentGeneration > MAX_GENERATIONS || populationHistory[populationHistory.length - 1].length === 0) {
+                endSimulation();
+                return;
+            }
+
+            const currentPopData = populationHistory[populationHistory.length - 1];
+            const classifiedPop = classifyPopulation(currentPopData);
             
-            document.getElementById('policy1').textContent = `P-1: ${policyMap['P-1'].desc}`;
-            document.getElementById('policy2').textContent = `P-2: ${policyMap['P-2'].desc}`;
-            document.getElementById('policy3').textContent = `P-3: ${policyMap['P-3'].desc}`;
+            // 世論による提案
+            proposedPolicy = generateProposal(currentMorale, currentPopData, classifiedPop);
 
-            document.getElementById('policy1').onclick = () => selectPolicy('P-1');
-            document.getElementById('policy2').onclick = () => selectPolicy('P-2');
-            document.getElementById('policy3').onclick = () => selectPolicy('P-3');
+            document.getElementById('controlTitle').textContent = `最高指導者の決断 (第 ${currentGeneration} / ${MAX_GENERATIONS})`;
+            document.getElementById('controlDescription').innerHTML = '世論は次の**2世代**の配分ルールを提案しています。';
+            
+            document.getElementById('proposedPolicy').innerHTML = `提案ルール: **${proposedPolicy.label}**<br><span style="font-size:0.8em; color: #555;">${proposedPolicy.description}</span>`;
+            
+            document.getElementById('choiceAccept').onclick = () => handleDecision(true); // 決定
+            document.getElementById('choiceRebel').onclick = () => handleDecision(false); // 反抗
+
+            updateUI();
         }
 
-        function selectPolicy(policyId) {
-            currentPolicy = policyMap[policyId];
-            showRuleSelection();
+        function handleDecision(isAccept) {
+            let policyToExecute = proposedPolicy;
+            let executedId = policyToExecute.id;
+            
+            if (!isAccept) {
+                rebelCounter++;
+                // 反抗: 提案とは真逆の政策を実行
+                const reversePolicyId = { 'P1': 'P3', 'P3': 'P1', 'P2': 'P4', 'P4': 'P2' }[proposedPolicy.id] || 'P2';
+                policyToExecute = DISTRIBUTION_POLICIES.find(p => p.id === reversePolicyId);
+                executedId = reversePolicyId;
+                
+                // 反抗ペナルティ (モラル低下)
+                currentMorale = Math.max(0, currentMorale - REBEL_MORALE_PENALTY);
+            }
+            
+            runGenerations(2, policyToExecute);
         }
 
-        function showRuleSelection() {
-            document.getElementById('policySelectionButtons').style.display = 'none';
-            document.getElementById('mainSelectionButtons').style.display = 'block';
-            document.getElementById('controlTitle').textContent = `配分ルール選択 (第 ${currentGeneration} / ${MAX_GENERATIONS})`;
-            document.getElementById('controlDescription').innerHTML = '次の**2世代**を支配する「優しさ」を選択してください。';
-
-            // ボタンのラベル設定 (ランダムシャッフル済み)
-            document.getElementById('choiceA').textContent = mainChoiceA.label;
-            document.getElementById('choiceB').textContent = mainChoiceB.label;
-
-            document.getElementById('choiceA').onclick = () => selectRule(mainChoiceA.rule);
-            document.getElementById('choiceB').onclick = () => selectRule(mainChoiceB.rule);
-        }
-
-        function selectRule(rule) {
-            currentRule = rule;
-            runGenerations(2); // 2世代実行
-        }
-
-        function runGenerations(count) {
+        function runGenerations(count, policy) {
             for (let i = 0; i < count; i++) {
                 if (currentGeneration > MAX_GENERATIONS || populationHistory[populationHistory.length - 1].length === 0) {
                     endSimulation();
@@ -518,12 +523,7 @@
                 }
                 
                 const lastPop = populationHistory[populationHistory.length - 1];
-                const lastTech = techHistory[techHistory.length - 1];
-
-                // 公正な判断時にのみポリシーが適用される
-                const appliedPolicy = (currentRule === RULE_MAP.FAIR) ? currentPolicy : null;
-
-                const result = runGeneration(lastPop, currentRule, appliedPolicy, lastTech, currentMorale);
+                const result = runGeneration(lastPop, policy);
                 
                 populationHistory.push(result.nextPop);
                 techHistory.push(result.nextTech);
@@ -536,15 +536,11 @@
 
             updateUI();
             
-            // 終了判定
-            if (currentGeneration > MAX_GENERATIONS || populationHistory[populationHistory.length - 1].length === 0) {
-                endSimulation();
-            } else if ((currentGeneration - 1) % 4 === 0 && currentGeneration !== 1) {
-                // 4世代ごとにポリシー再選択
-                showPolicySelection();
+            // 次の世代の判断画面を表示
+            if (currentGeneration <= MAX_GENERATIONS) {
+                showDecisionScreen();
             } else {
-                // 2世代ごとにルール再選択
-                showRuleSelection();
+                endSimulation();
             }
         }
 
@@ -561,14 +557,12 @@
             document.getElementById('finalMoraleResult').textContent = `${finalMorale}`;
             document.getElementById('finalMoraleResult').className = `result-final-value ${finalMorale >= 80 ? 'stat-good' : (finalMorale < 50 ? 'stat-bad' : '')}`;
             
-            const avgBonus = totalLeaderGenerations > 0 ? (totalLeaderBonus / totalLeaderGenerations).toFixed(2) : 0;
-            document.getElementById('avgLeaderBonus').textContent = avgBonus;
+            document.getElementById('rebelCount').textContent = rebelCounter;
             document.getElementById('famineCount').textContent = famineCounter;
         }
 
         // 初期表示
-        updateUI();
-        showPolicySelection(); // ゲームは指導者ポリシー選択から開始
+        showDecisionScreen();
     </script>
 </body>
 </html>
