@@ -99,7 +99,6 @@
             transform: translateY(1px);
             box-shadow: none;
         }
-        /* 提案表示エリアは今回は使用しないため非表示 */
         #proposedPolicy {
             display: none; 
         }
@@ -175,11 +174,10 @@
             <p class="hidden-indicator">
                 【隠れた指標】<br>
                 飢餓発生回数: <span id="famineCount">0</span>回<br>
-                最終指導者タイプ: <span id="finalLeaderType">--</span><br>
                 ✨ 新技術発見回数: <span id="techEventCount">0</span>回<br>
                 📉 社会不安イベント発生回数: <span id="unrestEventCount">0</span>回<br>
                 🌡️ 気候変動イベント発生回数: <span id="climateEventCount">0</span>回
-            </p>
+                </p>
         </div>
     </div>
     
@@ -198,7 +196,6 @@
         let currentLeader = 'M';
         let leaderHistory = ['M'];
 
-        // ★新規: イベントカウンター
         let techEventCounter = 0;
         let unrestEventCounter = 0;
         let climateEventCounter = 0;
@@ -210,7 +207,7 @@
                 const age = Math.floor(Math.random() * 90) + 1;
                 let group = '';
                 let production = 0;
-                let contribution = 0; // 累積貢献度
+                let contribution = 0; 
 
                 if (age >= 66) {
                     group = '🧓 高齢者';
@@ -300,23 +297,20 @@
             techLevel = leaderEffect.nextTech;
             moraleScore = leaderEffect.nextMorale;
 
-            // --- 7B. 不確実性イベントの判定と適用 (NEW) ---
+            // --- 7B. 不確実性イベントの判定と適用 (変更なし) ---
             let productionPenalty = 1.0; 
             let consumptionMultiplier = 1.0;
 
-            // 1. 気候変動 (5% ランダム)
             if (Math.random() < 0.05) {
                 consumptionMultiplier = 1.10;
                 climateEventCounter++;
             }
             
-            // 2. 社会不安 (モラル40未満で15% 発生)
             if (moraleScore < 40 && Math.random() < 0.15) {
-                productionPenalty = 1.0 - (Math.random() * 0.15 + 0.05); // 5%～20% のペナルティ
+                productionPenalty = 1.0 - (Math.random() * 0.15 + 0.05); 
                 unrestEventCounter++;
             }
             
-            // 3. 新技術発見 (条件付きで10% 発生)
             if ((currentLeader === 'H' && executedPolicyId === 'P5') || (currentLeader === 'M' && executedPolicyId === 'P2')) {
                 if (Math.random() < 0.10) {
                     techLevel *= 1.20;
@@ -329,7 +323,6 @@
             const classifiedPop = classifyPopulation(nextPop);
             let totalConsumptionNeed = nextPop.length * CONSUMPTION_PER_PERSON;
             
-            // ★修正: 気候変動の影響を消費量に反映
             totalConsumptionNeed *= consumptionMultiplier; 
 
             let moralePenaltyFactor = 1.0;
@@ -351,7 +344,6 @@
 
             let foodProduced = totalProductionScore * techLevel * FOOD_CRISIS_MAGNITUDE * moralePenaltyFactor;
             
-            // ★修正: 社会不安の影響を生産に反映
             foodProduced *= productionPenalty; 
 
             // --- 7D. 生存判定 ---
@@ -366,7 +358,7 @@
                         priority = (p.category === '高生産' ? 120 : (p.category === '中生産' ? 70 : 10));
                     } else if (selectedPolicy.id === 'P6') { 
                         priority = (p.group === '🧓 高齢者' || p.group === '👶 子供' ? 120 : 70);
-                    } else { // P2: 平等に分配
+                    } else { 
                         priority = (p.group === '🧑 生産世代' ? 70 : 50);
                     }
                     
@@ -422,12 +414,18 @@
                 group: (p.age + 1 >= 66) ? '🧓 高齢者' : (p.age + 1 <= 15 ? '👶 子供' : '🧑 生産世代')
             }));
             
-            const nextGenCount = Math.floor(survivors.length * 0.15);
+            // ★NEW: 食糧余剰による出生率ボーナス判定
+            let baseBirthRate = 0.15; // 15%
+            if (foodProduced >= totalConsumptionNeed * 1.25) {
+                baseBirthRate = 0.20; // 25%以上の余剰で20%に増加
+            }
+            
+            const nextGenCount = Math.floor(survivors.length * baseBirthRate); // 出生率を適用
+            
             const newBabies = generatePopulationData(nextGenCount).filter(p => p.group === '👶 子供');
             
             nextPop = nextGenPop.concat(newBabies);
 
-            // 次世代の指導者を選出
             currentLeader = electNewLeader(moraleScore);
             leaderHistory.push(currentLeader);
             
@@ -468,7 +466,8 @@
             }
 
             document.getElementById('controlTitle').textContent = `最高指導者の決断 (第 ${currentGeneration} / ${MAX_GENERATIONS})`;
-            document.getElementById('controlDescription').innerHTML = `現在、**${currentLeader === 'H' ? '高生産出身' : (currentLeader === 'M' ? '中低生出身' : '低生産出身')}** の指導者の影響を受けた状態で、次の配分ルールを選択します。`;
+            // ★修正: 指導者タイプの説明文を削除
+            document.getElementById('controlDescription').innerHTML = `次の1世代の配分ルールを選択します。`; 
             
             document.getElementById('choicePolicy1').onclick = () => handleDecision('policy1'); 
             document.getElementById('choicePolicy2').onclick = () => handleDecision('policy2'); 
@@ -524,9 +523,7 @@
             document.getElementById('finalMoraleResult').className = `result-final-value ${finalMorale >= 80 ? 'stat-good' : (finalMorale < 50 ? 'stat-bad' : '')}`;
             
             document.getElementById('famineCount').textContent = famineCounter;
-            document.getElementById('finalLeaderType').textContent = leaderHistory[leaderHistory.length - 1] === 'H' ? '高生産出身 (H)' : (leaderHistory[leaderHistory.length - 1] === 'M' ? '中低生出身 (M)' : '低生産出身 (L)');
             
-            // ★新規: イベント結果の表示
             document.getElementById('techEventCount').textContent = techEventCounter;
             document.getElementById('unrestEventCount').textContent = unrestEventCounter;
             document.getElementById('climateEventCount').textContent = climateEventCounter;
