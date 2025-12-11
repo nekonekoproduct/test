@@ -28,6 +28,7 @@
             border-bottom: 3px solid #eee;
             padding-bottom: 15px;
             margin-bottom: 25px;
+            font-size: 24px; /* スマホで見やすいように調整 */
         }
         .info-box {
             display: flex;
@@ -36,12 +37,10 @@
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
-            /* スマホで横並びを維持するためにflex-wrapを制御 */
-            flex-wrap: wrap; 
+            flex-wrap: wrap; /* スマホで4項目が折り返すように */
         }
         .stat {
             text-align: center;
-            /* 4項目がスマホで綺麗に収まるよう幅を調整 */
             flex: 1 1 45%; 
             min-width: 100px;
             margin: 5px 0;
@@ -88,7 +87,7 @@
             border: none;
             border-radius: 8px;
             transition: transform 0.1s, box-shadow 0.1s;
-            margin: 8px 0; /* マージンを上下に調整 */
+            margin: 8px 0; 
             width: 95%; 
             max-width: 380px; 
             box-shadow: 0 4px #4a4a4a;
@@ -209,7 +208,7 @@
             { id: 'P4', label: '調整型 (高生産普通, 無生産多め)', boost: 0.0, morale_impact: 5, description: '高生産者と弱者の間で利益を調整します。' }
         ];
 
-        // --- 3. 国民分類の関数 ---
+        // --- 3. 国民分類の関数 (変更なし) ---
         function classifyPopulation(population) {
             const producers = population.filter(p => p.group === '🧑 生産世代');
             
@@ -234,256 +233,9 @@
             return classified;
         }
 
-        // --- 4. 世論提案ロジック ---
+        // --- 4. 世論提案ロジック (変更なし) ---
         function generateProposal(moraleScore, currentPop, classifiedPop) {
             const highProdRatio = classifiedPop.high_prod.length / currentPop.length;
             const nonProdRatio = classifiedPop.non_prod.length / currentPop.length;
 
-            let moraleInfluence = (moraleScore / 100) * 0.5;
-            let needInfluence = 0;
-
-            const foodLastGen = foodHistory[foodHistory.length - 1] || 1;
-            const consumptionLastGen = consumptionHistory[consumptionHistory.length - 1] || 1;
-            
-            if (foodLastGen < consumptionLastGen * 1.05) {
-                needInfluence = Math.min(0.5, 1 - (foodLastGen / (consumptionLastGen * 1.05)));
-            }
-
-            const publicOpinionScore = (highProdRatio * 0.3) + needInfluence - (moraleInfluence * 0.5);
-
-            let proposedPolicyId;
-
-            if (publicOpinionScore > 0.4) {
-                proposedPolicyId = 'P1'; 
-            } else if (publicOpinionScore < -0.2) {
-                proposedPolicyId = 'P3';
-            } else if (publicOpinionScore > 0.1) {
-                proposedPolicyId = 'P4';
-            } else {
-                proposedPolicyId = 'P2';
-            }
-
-            return DISTRIBUTION_POLICIES.find(p => p.id === proposedPolicyId);
-        }
-
-        // --- 5. ユーティリティ関数と初期データ生成 (変更なし) ---
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        function generatePopulationData(size) {
-            const data = [];
-            const AGE_GROUPS = {
-                'child': [0, 15, 0.20], 
-                'producer': [16, 65, 0.60], 
-                'elder': [66, 90, 0.20]
-            };
-            
-            let ages = [];
-            for (const group in AGE_GROUPS) {
-                const [start, end, ratio] = AGE_GROUPS[group];
-                const count = Math.floor(size * ratio);
-                for(let i=0; i<count; i++) {
-                    ages.push(Math.floor(Math.random() * (end - start + 1)) + start);
-                }
-            }
-            ages = ages.slice(0, size);
-            ages.sort(() => Math.random() - 0.5);
-
-            for (let i = 0; i < ages.length; i++) {
-                const age = ages[i];
-                let group_name, occupation, production_score, past_contribution, health_status;
-
-                if (age <= 15) {
-                    group_name = '👶 子供';
-                    occupation = '無職/学生';
-                    production_score = 0;
-                    past_contribution = 0;
-                } else if (age >= 66) {
-                    group_name = '🧓 高齢者';
-                    occupation = '引退済み';
-                    production_score = 0;
-                    past_contribution = Math.floor(Math.random() * 41) + 10 + (age - 66) * 2; 
-                } else {
-                    group_name = '🧑 生産世代';
-                    const occupations = ['食糧生産者', '技術開発者', '一般労働者', 'サービス業'];
-                    occupation = occupations[Math.floor(Math.random() * occupations.length)];
-                    
-                    if (occupation === '食糧生産者') {
-                        production_score = Math.floor(Math.random() * 6) + 5;
-                    } else if (occupation === '技術開発者') {
-                        production_score = (Math.floor(Math.random() * 6) + 3) * 1.5;
-                    } else {
-                        production_score = Math.floor(Math.random() * 6) + 1;
-                    }
-                    past_contribution = production_score * 5 + Math.floor(Math.random() * 11);
-                }
-
-                health_status = ['健康', '軽度の病', '重度の病'][Math.floor(Math.random() * 3)];
-                
-                data.push({
-                    id: i + 1,
-                    age: age,
-                    group: group_name,
-                    production: production_score,
-                    contribution: past_contribution,
-                    health: health_status
-                });
-            }
-            return data;
-        }
-
-        // --- 6. シミュレーションコア関数 (runGeneration) ---
-        function runGeneration(currentPop, selectedPolicy) {
-            let nextPop = JSON.parse(JSON.stringify(currentPop));
-            let techLevel = techHistory[techHistory.length - 1];
-            let moraleScore = moraleHistory[moraleHistory.length - 1];
-            
-            const classifiedPop = classifyPopulation(nextPop);
-
-            // --- 6A. 生産量計算 ---
-            const totalConsumptionNeed = nextPop.length * CONSUMPTION_PER_PERSON;
-            
-            let moralePenaltyFactor = 1.0;
-            if (moraleScore < MORALE_LOW_THRESHOLD) {
-                moralePenaltyFactor = 1.0 - (Math.random() * 0.15); 
-                famineCounter++;
-            }
-
-            const prodBoost = selectedPolicy.boost;
-            
-            const totalProductionScore = nextPop.reduce((sum, p) => {
-                let currentProd = p.production;
-                if (p.group === '🧑 生産世代') {
-                    if (p.category === '高生産') {
-                        currentProd *= (1 + prodBoost);
-                    }
-                }
-                return sum + currentProd;
-            }, 0);
-
-            const foodProduced = totalProductionScore * techLevel * FOOD_CRISIS_MAGNITUDE * moralePenaltyFactor;
-            
-            // --- 6B. 生存判定 ---
-            let survivors = [];
-
-            if (foodProduced < totalConsumptionNeed) {
-                
-                nextPop.forEach(p => {
-                    let priority = 0;
-                    
-                    if (selectedPolicy.id === 'P1') { 
-                        priority = (p.category === '高生産' ? 100 : (p.category === '中生産' ? 50 : 10));
-                    } else if (selectedPolicy.id === 'P3') { 
-                        priority = (p.group === '🧓 高齢者' || p.group === '👶 子供' ? 100 : 50);
-                    } else { 
-                        priority = (p.group === '🧑 生産世代' ? 70 : 50);
-                    }
-                    
-                    priority += p.production * 5 + p.contribution * 0.5;
-
-                    p.priority = priority;
-                });
-
-                nextPop.sort((a, b) => b.priority - a.priority);
-                const survivorCount = Math.floor(foodProduced / CONSUMPTION_PER_PERSON);
-                survivors = nextPop.slice(0, survivorCount);
-                
-            } else {
-                survivors = nextPop;
-            }
-            
-            if (survivors.length === 0) {
-                 return { nextPop: [], nextTech: techLevel, nextMorale: 0, food: foodProduced, consumption: totalConsumptionNeed };
-            }
-
-            const initialElderCount = nextPop.filter(p => p.group === '🧓 高齢者').length;
-            const elderSurvivorsCount = survivors.filter(p => p.group === '🧓 高齢者').length;
-            const elderSurvivalRate = initialElderCount > 0 ? elderSurvivorsCount / initialElderCount : 0;
-
-
-            // --- 6C. モラル変動の計算 ---
-            let deltaMorale = 0;
-            
-            deltaMorale += selectedPolicy.morale_impact;
-
-            if (elderSurvivalRate < 0.1 && initialElderCount > 0) {
-                deltaMorale -= 10; 
-            } else if (elderSurvivalRate > 0.8 && initialElderCount > 0) {
-                deltaMorale += 5;
-            }
-
-            if (foodProduced >= totalConsumptionNeed * 1.25) {
-                deltaMorale += 7; 
-            } else if (foodProduced < totalConsumptionNeed * 0.8) {
-                deltaMorale -= 7; 
-            }
-
-            moraleScore = Math.min(100, Math.max(0, moraleScore + deltaMorale));
-            
-            // --- 6D. 世代交代と技術更新 ---
-            
-            const survivorProducerScore = survivors.filter(p => p.group === '🧑 生産世代').reduce((sum, p) => sum + p.production, 0);
-            let techBoost = totalProductionScore > 0 ? survivorProducerScore / totalProductionScore : 0;
-            
-            techLevel *= (1 + techBoost * 0.1) * (moraleScore / 100); 
-            
-            let nextGenPop = survivors.filter(p => p.age < 90).map(p => ({
-                ...p,
-                age: p.age + 1,
-                group: (p.age + 1 >= 66) ? '🧓 高齢者' : (p.age + 1 <= 15 ? '👶 子供' : '🧑 生産世代')
-            }));
-            
-            const nextGenCount = Math.floor(survivors.length * 0.15);
-            const newBabies = generatePopulationData(nextGenCount).filter(p => p.group === '👶 子供');
-            
-            nextPop = nextGenPop.concat(newBabies);
-            
-            return { nextPop: nextPop, nextTech: techLevel, nextMorale: moraleScore, food: foodProduced, consumption: totalConsumptionNeed };
-        }
-
-        // --- 7. メインロジックとUI制御 ---
-        const initialPopulationData = generatePopulationData(POPULATION_SIZE);
-        let populationHistory = [initialPopulationData];
-        let techHistory = [1.0];
-        let moraleHistory = [100];
-        let foodHistory = [];
-        let consumptionHistory = [];
-        let proposedPolicy = null;
-
-        function updateUI() {
-            const currentPopData = populationHistory[populationHistory.length - 1];
-            const currentFood = foodHistory[foodHistory.length - 1] || 0; 
-            const currentConsumption = consumptionHistory[consumptionHistory.length - 1] || 0;
-
-            document.getElementById('currentGeneration').textContent = `${currentGeneration} / ${MAX_GENERATIONS}`;
-            document.getElementById('currentPopulation').textContent = currentPopData.length;
-            document.getElementById('currentMorale').textContent = currentMorale.toFixed(0);
-            document.getElementById('currentMorale').className = `stat-value ${currentMorale > 80 ? 'stat-good' : (currentMorale < 50 ? 'stat-bad' : '')}`;
-            
-            document.getElementById('currentProduction').textContent = (currentGeneration > 1) ? `${currentFood.toFixed(0)} / ${currentConsumption.toFixed(0)}` : '-- / --';
-        }
-
-        function showDecisionScreen() {
-            if (currentGeneration > MAX_GENERATIONS || populationHistory[populationHistory.length - 1].length === 0) {
-                endSimulation();
-                return;
-            }
-
-            const currentPopData = populationHistory[populationHistory.length - 1];
-            const classifiedPop = classifyPopulation(currentPopData);
-            
-            // 世論による提案
-            proposedPolicy = generateProposal(currentMorale, currentPopData, classifiedPop);
-
-            document.getElementById('controlTitle').textContent = `最高指導者の決断 (第 ${currentGeneration} / ${MAX_GENERATIONS})`;
-            document.getElementById('controlDescription').innerHTML = '世論は次の**1世代**の配分ルールを提案しています。';
-            
-            // ★★★ 提案表示ロジック (最終安定版) ★★★
-            let proposalHtml;
-            if (proposedPolicy) {
-                proposalHtml = `提案ルール: **${proposedPolicy.label}**<br><span style="font-size:0.8em; color: #555
+            let moraleInfluence = (moraleScore / 100) * 0.5
