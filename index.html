@@ -36,18 +36,24 @@
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
+            /* スマホで横並びを維持するためにflex-wrapを制御 */
+            flex-wrap: wrap; 
         }
         .stat {
             text-align: center;
+            /* 4項目がスマホで綺麗に収まるよう幅を調整 */
+            flex: 1 1 45%; 
+            min-width: 100px;
+            margin: 5px 0;
         }
         .stat-label {
-            font-size: 14px;
+            font-size: 13px;
             color: #1a56a0;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
         .stat-value {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
         }
         .stat-good { color: #2ecc71; }
@@ -65,7 +71,7 @@
             font-size: 20px;
         }
         
-        /* メインボタンエリアのレイアウト修正 (縦並び、中央寄せ) */
+        /* 3つのボタンが縦に並ぶように調整 */
         #mainSelectionButtons {
             display: flex; 
             flex-direction: column; 
@@ -76,15 +82,15 @@
         /* ボタンの幅をパーセンテージベースに変更 */
         button {
             padding: 15px 25px;
-            font-size: 17px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             border: none;
             border-radius: 8px;
             transition: transform 0.1s, box-shadow 0.1s;
-            margin: 10px;
-            width: 90%; 
-            max-width: 350px; 
+            margin: 8px 0; /* マージンを上下に調整 */
+            width: 95%; 
+            max-width: 380px; 
             box-shadow: 0 4px #4a4a4a;
             background-color: #f0f0f0;
             color: #333;
@@ -126,7 +132,7 @@
 <body>
     <div class="container">
         <h1>【世論と決断】10世代の倫理と生存戦略</h1>
-        <p>あなたは最高指導者です。毎世代、世論の提案に「決定」するか、「反抗」するかを決断してください。</p>
+        <p>あなたは最高指導者です。毎世代、世論の提案に対し、3つの選択肢から決断してください。</p>
         
         <div class="info-box">
             <div class="stat">
@@ -157,6 +163,9 @@
                 <button id="choiceAccept" style="background-color: #2ecc71; color: white; box-shadow: 0 4px #27ae60;">
                     ✅ 決定 (提案通りに進める)
                 </button>
+                <button id="choiceModerate" style="background-color: #f39c12; color: white; box-shadow: 0 4px #e67e22;">
+                    ⚖️ 調整 (均衡配分 P2を代わりに実行)
+                </button>
                 <button id="choiceRebel" style="background-color: #e74c3c; color: white; box-shadow: 0 4px #c0392b;">
                     ❌ 反抗 (世論に逆らい、真逆の政策を強行する)
                 </button>
@@ -181,11 +190,11 @@
     <script>
         // --- 1. 定数と初期設定 ---
         const POPULATION_SIZE = 1000;
-        const MAX_GENERATIONS = 10; // 修正: 10世代
-        const CONSUMPTION_PER_PERSON = 3.5; // 修正: 3.5に緩和
-        const FOOD_CRISIS_MAGNITUDE = 0.35; // 修正: 0.35に緩和
+        const MAX_GENERATIONS = 10; 
+        const CONSUMPTION_PER_PERSON = 3.5; 
+        const FOOD_CRISIS_MAGNITUDE = 0.35; 
         const MORALE_LOW_THRESHOLD = 50; 
-        const REBEL_MORALE_PENALTY = 10; // 修正: 10に緩和
+        const REBEL_MORALE_PENALTY = 10; 
 
         let currentGeneration = 1;
         let currentMorale = 100;
@@ -474,87 +483,7 @@
             document.getElementById('controlTitle').textContent = `最高指導者の決断 (第 ${currentGeneration} / ${MAX_GENERATIONS})`;
             document.getElementById('controlDescription').innerHTML = '世論は次の**1世代**の配分ルールを提案しています。';
             
-            // ★★★ 提案表示ロジック (最終修正版) ★★★
+            // ★★★ 提案表示ロジック (最終安定版) ★★★
             let proposalHtml;
             if (proposedPolicy) {
-                proposalHtml = `提案ルール: **${proposedPolicy.label}**<br><span style="font-size:0.8em; color: #555;">${proposedPolicy.description}</span>`;
-            } else {
-                // エラー時の代替表示とP2強制選択（安全策）
-                proposalHtml = `**エラー:** 提案ルールを読み込めませんでした。デフォルトの**均衡配分(P2)**が選択されます。`;
-                proposedPolicy = DISTRIBUTION_POLICIES.find(p => p.id === 'P2');
-            }
-            
-            document.getElementById('proposedPolicy').innerHTML = proposalHtml;
-            // ★★★ 提案表示ロジック 終了 ★★★
-            
-            document.getElementById('choiceAccept').onclick = () => handleDecision(true); 
-            document.getElementById('choiceRebel').onclick = () => handleDecision(false); 
-
-            updateUI();
-        }
-
-        function handleDecision(isAccept) {
-            let policyToExecute = proposedPolicy;
-            
-            if (!isAccept) {
-                rebelCounter++;
-                // 反抗: 提案とは真逆の政策を実行
-                const reversePolicyId = { 'P1': 'P3', 'P3': 'P1', 'P2': 'P4', 'P4': 'P2' }[proposedPolicy.id] || 'P2';
-                policyToExecute = DISTRIBUTION_POLICIES.find(p => p.id === reversePolicyId);
-                
-                currentMorale = Math.max(0, currentMorale - REBEL_MORALE_PENALTY);
-            }
-            
-            runGenerations(1, policyToExecute); // 1世代実行
-        }
-
-        function runGenerations(count, policy) {
-            for (let i = 0; i < count; i++) {
-                if (currentGeneration > MAX_GENERATIONS || populationHistory[populationHistory.length - 1].length === 0) {
-                    endSimulation();
-                    return;
-                }
-                
-                const lastPop = populationHistory[populationHistory.length - 1];
-                const result = runGeneration(lastPop, policy);
-                
-                populationHistory.push(result.nextPop);
-                techHistory.push(result.nextTech);
-                moraleHistory.push(result.nextMorale);
-                foodHistory.push(result.food);
-                consumptionHistory.push(result.consumption);
-                currentMorale = result.nextMorale;
-                currentGeneration++;
-            }
-
-            updateUI();
-            
-            if (currentGeneration <= MAX_GENERATIONS) {
-                showDecisionScreen();
-            } else {
-                endSimulation();
-            }
-        }
-
-        function endSimulation() {
-            document.getElementById('selectionArea').style.display = 'none';
-            document.getElementById('resultOutput').style.display = 'block';
-            
-            const finalPop = populationHistory[populationHistory.length - 1].length;
-            const finalMorale = moraleHistory[moraleHistory.length - 1].toFixed(0);
-            
-            document.getElementById('finalPopulationResult').textContent = `${finalPop} 人`;
-            document.getElementById('finalPopulationResult').className = `result-final-value ${finalPop >= POPULATION_SIZE * 0.8 ? 'stat-good' : (finalPop < POPULATION_SIZE * 0.4 ? 'stat-bad' : '')}`;
-
-            document.getElementById('finalMoraleResult').textContent = `${finalMorale}`;
-            document.getElementById('finalMoraleResult').className = `result-final-value ${finalMorale >= 80 ? 'stat-good' : (finalMorale < 50 ? 'stat-bad' : '')}`;
-            
-            document.getElementById('rebelCount').textContent = rebelCounter;
-            document.getElementById('famineCount').textContent = famineCounter;
-        }
-
-        // 初期表示
-        showDecisionScreen();
-    </script>
-</body>
-</html>
+                proposalHtml = `提案ルール: **${proposedPolicy.label}**<br><span style="font-size:0.8em; color: #555
